@@ -161,7 +161,18 @@ function pickerChoose(id){
 }
 function openLeaderEditorThenPick(){ openLeaderEditor(null); }
 
-/* ---------- Sincronizar líderes online (apitcg.com) ---------- */
+/* ---------- Proxy de imágenes ----------
+   El sitio oficial (en.onepiece-cardgame.com) bloquea la carga de sus
+   imágenes desde otras webs (Chrome las marca como
+   ERR_BLOCKED_BY_RESPONSE.NotSameSite). Para solucionarlo, pasamos la
+   imagen por wsrv.nl, un servicio gratuito que la sirve sin ese problema. */
+function proxifyImage(url){
+  if(!url) return null;
+  const stripped = url.replace(/^https:\/\//,'').replace(/^http:\/\//,'');
+  return 'https://wsrv.nl/?url=' + encodeURIComponent('ssl:'+stripped);
+}
+
+
 async function syncLeadersOnline(){
   if(!state.apiKey){
     toast("Añade tu clave de API en Ajustes primero");
@@ -186,7 +197,7 @@ async function syncLeadersOnline(){
       id: "api_"+c.code,
       name: c.name.replace(/\./g," "),
       colors: c.color ? c.color.split("/") : ["Variado"],
-      image: c.images? c.images.large||c.images.small : null,
+      image: c.images? proxifyImage(c.images.large||c.images.small) : null,
       custom:false
     }));
     // Mezclar: quitar duplicados por nombre, preferir versión online (con imagen)
